@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premier League Hub Việt Nam - Bảng Xếp Hạng, Lịch Đấu & Thống Kê</title>
+  <link rel="icon" type="image/png" href="https://resources.premierleague.com/premierleague/badges/70/t3.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-top">
+      <div class="brand" onclick="app.switchTab('standings')">
+        <!-- SVG Premier League Lion Crest -->
+        <svg class="brand-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="48" fill="#38003c" stroke="#00ff87" stroke-width="4"/>
+          <path d="M50 20C42 20 35 25 32 32C28 29 22 30 20 35C18 40 20 46 24 49C22 55 24 62 28 67C32 72 38 75 45 76C47 78 50 80 54 80C58 80 61 78 63 75C70 73 76 69 78 62C80 56 79 50 76 45C79 40 78 34 75 30C72 26 66 25 62 27C59 22 55 20 50 20ZM42 38C44.2 38 46 39.8 46 42C46 44.2 44.2 46 42 46C39.8 46 38 44.2 38 42C38 39.8 39.8 38 42 38ZM58 38C60.2 38 62 39.8 62 42C62 44.2 60.2 46 58 46C55.8 46 54 44.2 54 42C54 39.8 55.8 38 58 38ZM50 52C54 52 57 55 58 58C54 60 46 60 42 58C43 55 46 52 50 52Z" fill="#00ff87"/>
+        </svg>
+        <div class="brand-text">
+          <h1>PREMIER LEAGUE HUB</h1>
+          <span>Trung Tâm Dữ Liệu Bóng Đá Ngoại Hạng Anh</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Ô tìm kiếm nhanh cầu thủ/CLB -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearch" placeholder="Tìm cầu thủ, đội bóng..." oninput="app.handleSearch(this.value)">
+        </div>
+
+        <!-- Chọn CLB yêu thích -->
+        <select class="favorite-select" id="favoriteTeamSelect" onchange="app.setFavoriteTeam(this.value)">
+          <option value="">⭐ Chọn CLB Yêu Thích</option>
+        </select>
+
+        <!-- Nút làm mới dữ liệu -->
+        <button class="btn-refresh" onclick="app.refreshData()">
+          <span>🔄</span> Làm Mới
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+      <button class="nav-tab active" data-tab="standings" onclick="app.switchTab('standings')">📊 Bảng Xếp Hạng</button>
+      <button class="nav-tab" data-tab="fixtures" onclick="app.switchTab('fixtures')">⚽ Lịch Đấu & Kết Quả</button>
+      <button class="nav-tab" data-tab="stats" onclick="app.switchTab('stats')">🏆 Thống Kê Cá Nhân</button>
+      <button class="nav-tab" data-tab="clubs" onclick="app.switchTab('clubs')">🛡️ Câu Lạc Bộ & Đội Hình</button>
+      <button class="nav-tab" data-tab="injuries" onclick="app.switchTab('injuries')">🚑 Chấn Thương & Treo Giò</button>
+    </nav>
+  </header>
+
+  <!-- HERO STATUS BANNER -->
+  <section class="hero-banner">
+    <div class="hero-card">
+      <div class="hero-info">
+        <h2>Mùa Giải Premier League 2026/27 <span class="hero-badge" id="heroBadge">Đang diễn ra</span></h2>
+        <p id="lastUpdatedText">Cập nhật lúc: Đang tải...</p>
+      </div>
+      <div class="hero-quickstats" id="favoriteTeamBanner" style="display: none;">
+        <!-- Banner CLB yêu thích nếu có -->
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTAINER -->
+  <main class="main-content">
+
+    <!-- 1. VIEW: BẢNG XẾP HẠNG -->
+    <section id="view-standings" class="view-section active">
+      <div class="section-header">
+        <h2 class="section-title">📊 BẢNG XẾP HẠNG NGOẠI HẠNG ANH</h2>
+      </div>
+
+      <div class="table-container">
+        <table class="epl-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Hạng</th>
+              <th style="text-align: left;">Câu Lạc Bộ</th>
+              <th>Trận</th>
+              <th>T</th>
+              <th>H</th>
+              <th>B</th>
+              <th>BT</th>
+              <th>BB</th>
+              <th>HS</th>
+              <th>Điểm</th>
+              <th>5 Trận Gần Nhất</th>
+            </tr>
+          </thead>
+          <tbody id="standingsTableBody">
+            <!-- Render via JS -->
+          </tbody>
+        </table>
+        <div class="table-legend">
+          <div class="legend-item"><span class="legend-color" style="background: #0057b8;"></span> Top 1-5: UEFA Champions League</div>
+          <div class="legend-item"><span class="legend-color" style="background: #ff7700;"></span> Hạng 6: UEFA Europa League</div>
+          <div class="legend-item"><span class="legend-color" style="background: #e30613;"></span> Hạng 18-20: Xuống hạng Championship</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. VIEW: LỊCH ĐẤU & KẾT QUẢ -->
+    <section id="view-fixtures" class="view-section">
+      <div class="section-header">
+        <h2 class="section-title">⚽ LỊCH THI ĐẤU & KẾT QUẢ TRỰC TIẾP</h2>
+      </div>
+
+      <div class="gameweek-controller">
+        <button class="btn-gw" onclick="app.changeGameweek(-1)">◀ Vòng Trước</button>
+        <span class="gw-current-title" id="currentGwDisplay">Vòng 11</span>
+        <button class="btn-gw" onclick="app.changeGameweek(1)">Vòng Sau ▶</button>
+      </div>
+
+      <div class="matches-grid" id="fixturesGrid">
+        <!-- Render via JS -->
+      </div>
+    </section>
+
+    <!-- 3. VIEW: THỐNG KÊ CẦU THỦ -->
+    <section id="view-stats" class="view-section">
+      <div class="section-header">
+        <h2 class="section-title">🏆 THỐNG KÊ CẦU THỦ HÀNG ĐẦU</h2>
+      </div>
+
+      <!-- Bộ lọc thống kê 5 loại chuẩn -->
+      <div class="stats-filter-bar">
+        <button class="btn-stat-filter active" data-stat="goals" onclick="app.filterStats('goals')">⚽ Bàn Thắng (Top Scorer)</button>
+        <button class="btn-stat-filter" data-stat="assists" onclick="app.filterStats('assists')">🎯 Kiến Tạo (Top Assists)</button>
+        <button class="btn-stat-filter" data-stat="cleansheets" onclick="app.filterStats('cleansheets')">🧤 Giữ Sạch Lưới (Clean Sheets)</button>
+        <button class="btn-stat-filter" data-stat="yellow" onclick="app.filterStats('yellow')">🟨 Thẻ Vàng</button>
+        <button class="btn-stat-filter" data-stat="red" onclick="app.filterStats('red')">🟥 Thẻ Đỏ</button>
+      </div>
+
+      <div class="stats-note" id="statsNote">
+        * Bấm vào bất kỳ cầu thủ nào để xem hồ sơ và thông số chi tiết.
+      </div>
+
+      <div class="table-container">
+        <table class="epl-table">
+          <thead id="statsTableHead">
+            <!-- Cột tùy chỉnh theo loại thống kê -->
+          </thead>
+          <tbody id="statsTableBody">
+            <!-- Render via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. VIEW: CÂU LẠC BỘ & ĐỘI HÌNH -->
+    <section id="view-clubs" class="view-section">
+      <!-- Màn hình danh sách 20 CLB -->
+      <div id="clubsListView">
+        <div class="section-header">
+          <h2 class="section-title">🛡️ 20 CÂU LẠC BỘ NGOẠI HẠNG ANH</h2>
+        </div>
+        <div class="clubs-grid" id="clubsGrid">
+          <!-- Render 20 CLB -->
+        </div>
+      </div>
+
+      <!-- Màn hình chi tiết 1 CLB & Đội hình 4 nhóm vị trí -->
+      <div id="clubDetailView" class="club-detail-container">
+        <button class="btn-back-clubs" onclick="app.backToClubsList()">← Quay lại danh sách CLB</button>
+        <div class="club-hero" id="clubHeroBanner">
+          <!-- Banner CLB -->
+        </div>
+
+        <div id="clubSquadContainer">
+          <!-- 4 nhóm vị trí: Thủ môn, Hậu vệ, Tiền vệ, Tiền đạo -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. VIEW: CHẤN THƯƠNG & TREO GIÒ -->
+    <section id="view-injuries" class="view-section">
+      <div class="section-header">
+        <h2 class="section-title">🚑 TÌNH HÌNH LỰC LƯỢNG (CHẤN THƯƠNG & TREO GIÒ)</h2>
+      </div>
+
+      <div class="injury-grid" id="injuriesGrid">
+        <!-- Render danh sách chấn thương -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL PROFILE CẦU THỦ (CĂN GIỮA MÀN HÌNH CHUẨN) -->
+  <div class="modal-overlay" id="playerModal" onclick="app.handleModalOverlayClick(event)">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" onclick="app.closeModal()">✕</button>
+      <div class="modal-header">
+        <div class="modal-player-number" id="modalNumber">#</div>
+        <div class="modal-player-main">
+          <h3 id="modalName">Tên cầu thủ</h3>
+          <p id="modalTeamPos">Vị trí | Đội bóng</p>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="stat-grid-modal">
+          <div class="modal-stat-box">
+            <div class="modal-stat-val" id="modalGoals">0</div>
+            <div class="modal-stat-lbl">Bàn Thắng</div>
+          </div>
+          <div class="modal-stat-box">
+            <div class="modal-stat-val" id="modalAssists">0</div>
+            <div class="modal-stat-lbl">Kiến Tạo</div>
+          </div>
+          <div class="modal-stat-box" id="modalCleanSheetsBox">
+            <div class="modal-stat-val" id="modalCleanSheets">0</div>
+            <div class="modal-stat-lbl">Giữ Sạch Lưới</div>
+          </div>
+          <div class="modal-stat-box">
+            <div class="modal-stat-val" id="modalYellow">0</div>
+            <div class="modal-stat-lbl">Thẻ Vàng</div>
+          </div>
+          <div class="modal-stat-box">
+            <div class="modal-stat-val" id="modalRed">0</div>
+            <div class="modal-stat-lbl">Thẻ Đỏ</div>
+          </div>
+          <div class="modal-stat-box">
+            <div class="modal-stat-val" id="modalFplPoints">0</div>
+            <div class="modal-stat-lbl">Điểm FPL</div>
+          </div>
+        </div>
+
+        <div class="modal-status-box" id="modalStatusBox">
+          <!-- Trạng thái thể lực -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p><strong>Premier League Hub Việt Nam</strong> &copy; 2026. Dữ liệu chuẩn Ngoại Hạng Anh & FPL.</p>
+    <p style="margin-top: 6px; font-size: 0.75rem;">Thiết kế phục vụ mục đích học tập & trải nghiệm thể thao cho người hâm mộ.</p>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script src="data.js?v=2" charset="UTF-8"></script>
+  <script src="app.js?v=4" charset="UTF-8"></script>
+</body>
+</html>
