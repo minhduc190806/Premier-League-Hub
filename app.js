@@ -3,6 +3,17 @@
  * Tự động cập nhật dữ liệu mới nhất từ Premier League mỗi khi mở trang web
  */
 
+// Hàm phòng vệ XSS: Mã hóa an toàn các chuỗi ký tự động trước khi chèn vào HTML
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Bổ sung thông tin quản lý & sân vận động cho 20 CLB
 const CLUB_META = {
   1: { stadium: "Emirates Stadium (60,704 chỗ)", manager: "Mikel Arteta", founded: 1886 },
@@ -28,28 +39,26 @@ const CLUB_META = {
 };
 
 const app = {
-  currentGameweek: 10,
+  currentGameweek: 11,
   currentStatFilter: 'goals',
   selectedClubId: null,
   favoriteTeamId: localStorage.getItem('epl_favorite_team') || null,
   isSyncing: false,
 
   init() {
-    // 1. Xóa sạch cache bản cũ bị lỗi font và chỉ đọc cache bản v2 chuẩn UTF-8
+    // 1. Xoa sach cache cac ban cu de nap chuan du lieu Vong 11
     localStorage.removeItem('epl_live_cache');
-    const cachedData = localStorage.getItem('epl_live_cache_v2');
+    localStorage.removeItem('epl_live_cache_v2');
+
+    const cachedData = localStorage.getItem('epl_live_cache_v3');
     if (cachedData) {
       try {
-        if (cachedData.includes('├') || cachedData.includes('Â£')) {
-          localStorage.removeItem('epl_live_cache_v2');
-        } else {
-          const parsed = JSON.parse(cachedData);
-          if (parsed && parsed.teams && parsed.players) {
-            window.EPL_DATA = parsed;
-          }
+        const parsed = JSON.parse(cachedData);
+        if (parsed && parsed.teams && parsed.players) {
+          window.EPL_DATA = parsed;
         }
       } catch (e) {
-        localStorage.removeItem('epl_live_cache_v2');
+        localStorage.removeItem('epl_live_cache_v3');
       }
     }
 
@@ -65,7 +74,7 @@ const app = {
     this.renderClubsGrid();
     this.renderInjuries();
 
-    // Lắng nghe sự kiện bàn phím
+    // Lang nghe su kien ban phim
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.closeModal();
     });
@@ -74,16 +83,16 @@ const app = {
       this.highlightFavoriteTeam(Number(this.favoriteTeamId));
     }
 
-    // 2. TỰ ĐỘNG LẤY DỮ LIỆU MỚI NHẤT TỪ MÁY CHỦ PREMIER LEAGUE MỖI KHI VÀO WEB
+    // 2. Tu dong ket noi API Premier League moi khi vao web
     this.syncLiveFPLData(false);
 
-    // 3. Tự động kiểm tra làm mới mỗi 3 phút khi người dùng đang mở tab
+    // 3. Tu dong kiem tra lam moi moi 3 phut khi dang mo tab
     setInterval(() => {
       this.syncLiveFPLData(false);
     }, 180000);
   },
 
-  // TỰ ĐỘNG KẾT NỐI API PREMIER LEAGUE TRỰC TIẾP
+  // TU DONG KET NOI API PREMIER LEAGUE TRUC TIEP
   async syncLiveFPLData(isManual = false) {
     if (this.isSyncing) return;
     this.isSyncing = true;
@@ -93,72 +102,100 @@ const app = {
     const btnRefresh = document.querySelector('.btn-refresh');
 
     if (badge) {
-      badge.innerHTML = `🔄 Đang đồng bộ dữ liệu thời gian thực...`;
+      badge.innerHTML = '\uD83D\uDD04 \u0110ang \u0111\u1ED3ng b\u1ED9 d\u1EEF li\u1EC7u th\u1EDDi gian th\u1EF1c...';
       badge.style.background = 'rgba(255, 184, 0, 0.2)';
       badge.style.color = '#ffb800';
     }
     if (btnRefresh) {
-      btnRefresh.innerHTML = `<span>⏳</span> Đang tải...`;
+      btnRefresh.innerHTML = '<span>\u23F3</span> \u0110ang t\u1EA3i...';
     }
-
-    // Danh sách proxy miễn phí để vượt rào cản CORS từ trình duyệt
-    const proxies = [
-      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`
-    ];
 
     let success = false;
 
-    for (const proxyFn of proxies) {
-      try {
-        const bootstrapUrl = proxyFn('https://fantasy.premierleague.com/api/bootstrap-static/');
-        const fixturesUrl = proxyFn('https://fantasy.premierleague.com/api/fixtures/');
+    // Danh sach nguon du lieu theo thu tu uu tien
+    const sources = [];
 
-        const [resBootstrap, resFixtures] = await Promise.all([
-          fetch(bootstrapUrl, { cache: 'no-cache' }),
-          fetch(fixturesUrl, { cache: 'no-cache' })
-        ]);
-
-        if (!resBootstrap.ok || !resFixtures.ok) continue;
-
-        const decoder = new TextDecoder('utf-8');
-        const bootstrap = JSON.parse(decoder.decode(await resBootstrap.arrayBuffer()));
-        const fixtures = JSON.parse(decoder.decode(await resFixtures.arrayBuffer()));
-
-        if (bootstrap && bootstrap.teams && bootstrap.elements && fixtures) {
-          this.processAndApplyLiveData(bootstrap, fixtures);
-          success = true;
-          break;
-        }
-      } catch (err) {
-        console.warn('Proxy thử nghiệm không phản hồi, thử kênh tiếp theo...', err);
-      }
+    // Kenh 1: Vercel Serverless API & Rewrites (Khi chay tren web Vercel)
+    if (window.location.protocol.startsWith('http')) {
+      sources.push({
+        name: 'Vercel Serverless API',
+        bootstrapUrl: '/api/bootstrap',
+        fixturesUrl: '/api/fixtures'
+      });
+      sources.push({
+        name: 'Vercel Rewrite',
+        bootstrapUrl: '/api/fpl-bootstrap',
+        fixturesUrl: '/api/fpl-fixtures'
+      });
     }
 
-    this.isSyncing = false;
+    // Kenh 2: Public CORS proxies (khi mo file:// tren may)
+    const proxyList = [
+      url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    ];
+
+    for (const p of proxyList) {
+      sources.push({
+        name: 'Public Proxy',
+        bootstrapUrl: p('https://fantasy.premierleague.com/api/bootstrap-static/'),
+        fixturesUrl: p('https://fantasy.premierleague.com/api/fixtures/')
+      });
+    }
+
+    try {
+      for (const src of sources) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout chong treo
+
+          const [resBootstrap, resFixtures] = await Promise.all([
+            fetch(src.bootstrapUrl, { cache: 'no-cache', signal: controller.signal }),
+            fetch(src.fixturesUrl, { cache: 'no-cache', signal: controller.signal })
+          ]);
+          clearTimeout(timeoutId);
+
+          if (!resBootstrap.ok || !resFixtures.ok) continue;
+
+          const bootstrap = await resBootstrap.json();
+          const fixtures = await resFixtures.json();
+
+          if (bootstrap && bootstrap.teams && bootstrap.elements && Array.isArray(fixtures)) {
+            this.processAndApplyLiveData(bootstrap, fixtures);
+            success = true;
+            break;
+          }
+        } catch (err) {
+          console.warn(`Kenh ${src.name} khong kha dung, chuyen tiep:`, err.message);
+        }
+      }
+    } catch (err) {
+      console.error('Loi khi dong bo FPL:', err);
+    } finally {
+      this.isSyncing = false;
+    }
 
     if (success) {
       const now = new Date();
-      const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ngày ' + now.toLocaleDateString('vi-VN');
+      const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ng\u00E0y ' + now.toLocaleDateString('vi-VN');
       EPL_DATA.lastUpdated = timeStr;
 
-      // Lưu lại cache vào trình duyệt người dùng (bản v2 chuẩn UTF-8)
-      localStorage.setItem('epl_live_cache_v2', JSON.stringify(EPL_DATA));
+      localStorage.setItem('epl_live_cache_v3', JSON.stringify(EPL_DATA));
 
       if (badge) {
-        badge.innerHTML = `🟢 Trực Tiếp (Live Real-Time)`;
+        badge.innerHTML = '\uD83D\uDFE2 Tr\u1EF1c Ti\u1EBFp (Live Real-Time)';
         badge.style.background = 'rgba(0, 255, 135, 0.2)';
         badge.style.color = 'var(--epl-green)';
       }
       if (updateTxt) {
-        updateTxt.innerHTML = `⚡ <strong>Dữ liệu vừa được cập nhật trực tiếp lúc ${timeStr}</strong> | Nguồn FPL chính thức.`;
+        updateTxt.innerHTML = "\u26A1 <strong>D\u1EEF li\u1EC7u v\u1EEBa \u0111\u01B0\u1EE3c c\u1EADp nh\u1EADt tr\u1EF1c ti\u1EBFp l\u00FAc " + timeStr + "</strong> | Ngu\u1ED3n FPL ch\u00EDnh th\u1EE9c.";
       }
       if (btnRefresh) {
-        btnRefresh.innerHTML = `<span>✅</span> Mới Nhất`;
-        setTimeout(() => { btnRefresh.innerHTML = `<span>🔄</span> Làm Mới`; }, 2000);
+        btnRefresh.innerHTML = '<span>\u2705</span> M\u1EDBi Nh\u1EA5t';
+        setTimeout(() => { btnRefresh.innerHTML = '<span>\uD83D\uDD04</span> L\u00E0m M\u1EDBi'; }, 2000);
       }
 
-      // Re-render mượt mà giao diện
       this.renderStandings();
       this.renderFixtures();
       this.renderStats(this.currentStatFilter);
@@ -166,26 +203,29 @@ const app = {
       this.renderInjuries();
 
       if (isManual) {
-        this.showToast('✅ Đã cập nhật thành công dữ liệu mới nhất từ Ngoại Hạng Anh!');
+        this.showToast('\u2705 \u0110\u00E3 c\u1EADp nh\u1EADt th\u00E0nh c\u00F4ng d\u1EEF li\u1EC7u m\u1EDBi nh\u1EA5t t\u1EEB Ngo\u1EA1i H\u1EA1ng Anh!');
       }
     } else {
       if (badge) {
-        badge.innerHTML = `🟢 Dữ liệu Mùa Giải Mới Nhất`;
+        badge.innerHTML = "\uD83D\uDFE2 D\u1EEF li\u1EC7u Premier League M\u1EDBi Nh\u1EA5t (" + (EPL_DATA.lastUpdated || "V\u00F2ng 11") + ")";
         badge.style.background = 'rgba(0, 255, 135, 0.15)';
         badge.style.color = 'var(--epl-green)';
       }
+      if (updateTxt && EPL_DATA.lastUpdated) {
+        updateTxt.innerHTML = "\uD83D\uDFE2 <strong>D\u1EEF li\u1EC7u Premier League M\u1EDBi Nh\u1EA5t</strong> (" + EPL_DATA.lastUpdated + ")";
+      }
       if (btnRefresh) {
-        btnRefresh.innerHTML = `<span>🔄</span> Làm Mới`;
+        btnRefresh.innerHTML = '<span>\uD83D\uDD04</span> L\u00E0m M\u1EDBi';
       }
       if (isManual) {
-        this.showToast('📁 Đã tải lại dữ liệu mùa mới nhất từ hệ thống.');
+        this.showToast('\uD83D\uDCC1 \u0110\u00E3 l\u00E0m m\u1EDBi d\u1EEF li\u1EC7u Premier League m\u1EDBi nh\u1EA5t.');
       }
     }
   },
 
-  // Xử lý dữ liệu thô từ FPL thành cấu trúc hoàn chỉnh
+  // Xu ly du lieu tho tu FPL thanh cau truc hoan chinh
   processAndApplyLiveData(bootstrap, fixtures) {
-    // 1. Tính toán BXH từ Fixtures đã kết thúc
+    // 1. Tinh toan BXH tu Fixtures (Bao gom ca tran da ket thuc va tran DANG DA)
     const teamsTable = {};
     bootstrap.teams.forEach(t => {
       teamsTable[t.id] = {
@@ -207,7 +247,10 @@ const app = {
     });
 
     fixtures.forEach(f => {
-      if (f.finished && f.team_h_score !== null && f.team_a_score !== null) {
+      const isFinished = f.finished || f.finished_provisional;
+      const isLive = f.started && !isFinished;
+      // Cap nhat ca tran da ket thuc lan tran dang da co ty so
+      if ((isFinished || isLive) && f.team_h_score !== null && f.team_a_score !== null) {
         const h = teamsTable[f.team_h];
         const a = teamsTable[f.team_a];
         if (h && a) {
@@ -237,12 +280,12 @@ const app = {
       return item;
     });
 
-    // 2. Chuyển đổi danh sách cầu thủ
+    // 2. Chuyen doi danh sach cau thu
     const posMap = { 1: 'GK', 2: 'DF', 3: 'MF', 4: 'FW' };
     const playerList = [];
 
     bootstrap.elements.forEach(p => {
-      if (p.status === 'u') return; // Bỏ qua cầu thủ đã chuyển nhượng
+      if (p.status === 'u') return;
 
       let st = 'ready';
       if (p.status === 'i') st = 'injured';
@@ -262,14 +305,14 @@ const app = {
         yellow: p.yellow_cards || 0,
         red: p.red_cards || 0,
         fplPoints: p.total_points || 0,
-        cost: p.now_cost ? (p.now_cost / 10).toFixed(1) + 'M £' : 'FPL',
+        cost: p.now_cost ? (p.now_cost / 10).toFixed(1) + 'M Â£' : 'FPL',
         status: st,
         injuryReason: p.news || '',
         chanceOfPlaying: p.chance_of_playing_next_round
       });
     });
 
-    // 3. Chuyển đổi Lịch thi đấu sang Giờ Việt Nam (GMT+7)
+    // 3. Chuyen doi Lich thi dau sang Gio Viet Nam (GMT+7)
     const fixtureList = fixtures.map(f => {
       let dateVN = "TBD";
       let timeVN = "TBD";
@@ -282,7 +325,7 @@ const app = {
       }
 
       let st = 'UPCOMING';
-      if (f.finished) st = 'FT';
+      if (f.finished || f.finished_provisional) st = 'FT';
       else if (f.started) st = 'LIVE';
 
       return {
@@ -298,7 +341,8 @@ const app = {
       };
     });
 
-    const currentEvent = bootstrap.events.find(e => e.is_current);
+    // Xac dinh Gameweek hien tai
+    const currentEvent = bootstrap.events.find(e => e.is_current) || bootstrap.events.find(e => e.is_next);
     if (currentEvent) {
       this.currentGameweek = currentEvent.id;
     }
@@ -309,7 +353,7 @@ const app = {
     EPL_DATA.currentGameweek = this.currentGameweek;
   },
 
-  // Hiển thị thông báo Toast nhanh
+  // Hien thi thong bao Toast nhanh
   showToast(msg) {
     let toast = document.getElementById('eplToast');
     if (!toast) {
@@ -389,8 +433,8 @@ const app = {
           <td><span class="rank-badge ${rankClass}">${rank}</span></td>
           <td>
             <div class="team-cell">
-              <img src="${team.logo}" alt="${team.name}" class="team-logo-small">
-              <span>${team.name} ${isFavorite ? '⭐' : ''}</span>
+              <img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}" class="team-logo-small">
+              <span>${escapeHtml(team.name)} ${isFavorite ? '⭐' : ''}</span>
             </div>
           </td>
           <td>${team.played}</td>
@@ -462,19 +506,19 @@ const app = {
           </div>
           <div class="match-teams">
             <div class="match-team home">
-              <img src="${home.logo}" alt="${home.name}" style="width: 28px; height: 28px; object-fit: contain;">
-              <span class="match-team-name">${home.name}</span>
+              <img src="${escapeHtml(home.logo)}" alt="${escapeHtml(home.name)}" style="width: 28px; height: 28px; object-fit: contain;">
+              <span class="match-team-name">${escapeHtml(home.name)}</span>
             </div>
 
             <div class="match-score-box">${scoreDisplay}</div>
 
             <div class="match-team away">
-              <span class="match-team-name">${away.name}</span>
-              <img src="${away.logo}" alt="${away.name}" style="width: 28px; height: 28px; object-fit: contain;">
+              <span class="match-team-name">${escapeHtml(away.name)}</span>
+              <img src="${escapeHtml(away.logo)}" alt="${escapeHtml(away.name)}" style="width: 28px; height: 28px; object-fit: contain;">
             </div>
           </div>
           <div class="match-footer">
-            🏟️ ${meta.stadium || 'Sân Vận Động Premier League'}
+            🏟️ ${escapeHtml(meta.stadium || 'Sân Vận Động Premier League')}
           </div>
         </div>
       `;
@@ -546,12 +590,12 @@ const app = {
           <tr onclick="app.openModal(${player.id})">
             <td><strong style="color: var(--epl-green);">${idx + 1}</strong></td>
             <td style="text-align: left; font-weight: 700;">
-              🧤 ${player.webName || player.name} <span style="font-size: 0.75rem; color: var(--text-muted);">(#${player.number})</span>
+              🧤 ${escapeHtml(player.webName || player.name)} <span style="font-size: 0.75rem; color: var(--text-muted);">(#${escapeHtml(player.number)})</span>
             </td>
             <td style="text-align: left;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <img src="${team.logo}" alt="${team.name}" style="width: 20px; height: 20px; object-fit: contain;">
-                <span>${team.name}</span>
+                <img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}" style="width: 20px; height: 20px; object-fit: contain;">
+                <span>${escapeHtml(team.name)}</span>
               </div>
             </td>
             <td style="font-size: 1.15rem; font-weight: 900; color: var(--epl-green);">${player.cleanSheets}</td>
@@ -601,12 +645,12 @@ const app = {
         <tr onclick="app.openModal(${player.id})">
           <td><strong style="color: var(--epl-green);">${idx + 1}</strong></td>
           <td style="text-align: left; font-weight: 700;">
-            ${player.webName || player.name} <span style="font-size: 0.75rem; color: var(--text-muted);">(#${player.number})</span>
+            ${escapeHtml(player.webName || player.name)} <span style="font-size: 0.75rem; color: var(--text-muted);">(#${escapeHtml(player.number)})</span>
           </td>
           <td style="text-align: left;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <img src="${team.logo}" alt="${team.name}" style="width: 20px; height: 20px; object-fit: contain;">
-              <span>${team.name}</span>
+              <img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}" style="width: 20px; height: 20px; object-fit: contain;">
+              <span>${escapeHtml(team.name)}</span>
             </div>
           </td>
           <td><span style="font-size: 0.75rem; padding: 2px 6px; background: rgba(255,255,255,0.08); border-radius: 4px;">${posLabel}</span></td>
@@ -625,10 +669,10 @@ const app = {
       const meta = CLUB_META[team.id] || { stadium: "Premier League Stadium", manager: "Ban Huấn Luyện" };
       return `
         <div class="club-card" onclick="app.viewClubDetail(${team.id})">
-          <img src="${team.logo}" alt="${team.name}" class="club-card-logo">
-          <div class="club-card-name">${team.name}</div>
-          <div class="club-card-stadium">🏟️ ${meta.stadium}</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">HLV: ${meta.manager}</div>
+          <img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}" class="club-card-logo">
+          <div class="club-card-name">${escapeHtml(team.name)}</div>
+          <div class="club-card-stadium">🏟️ ${escapeHtml(meta.stadium)}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">HLV: ${escapeHtml(meta.manager)}</div>
           <div class="club-card-btn">Xem Đội Hình →</div>
         </div>
       `;
@@ -650,14 +694,14 @@ const app = {
 
     const hero = document.getElementById('clubHeroBanner');
     hero.innerHTML = `
-      <img src="${team.logo}" alt="${team.name}" class="club-hero-logo">
+      <img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}" class="club-hero-logo">
       <div style="flex: 1;">
-        <h2 style="font-size: 1.6rem; font-weight: 800;">${team.name}</h2>
+        <h2 style="font-size: 1.6rem; font-weight: 800;">${escapeHtml(team.name)}</h2>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
-          Năm thành lập: <strong>${meta.founded}</strong> | SVĐ: <strong>${meta.stadium}</strong>
+          Năm thành lập: <strong>${escapeHtml(meta.founded)}</strong> | SVĐ: <strong>${escapeHtml(meta.stadium)}</strong>
         </p>
         <p style="color: var(--epl-green); font-size: 0.85rem; font-weight: 700; margin-top: 2px;">
-          Huấn luyện viên trưởng: ${meta.manager}
+          Huấn luyện viên trưởng: ${escapeHtml(meta.manager)}
         </p>
       </div>
       <div style="text-align: right;">
@@ -698,13 +742,13 @@ const app = {
 
       return `
         <div class="player-card" onclick="app.openModal(${p.id})">
-          <div class="player-num-badge">${p.number || '•'}</div>
+          <div class="player-num-badge">${escapeHtml(p.number || '•')}</div>
           <div class="player-info-meta">
             <div class="player-info-name">
-              ${p.webName || p.name}
-              <span class="status-indicator ${statusDot}" title="${statusTitle}"></span>
+              ${escapeHtml(p.webName || p.name)}
+              <span class="status-indicator ${statusDot}" title="${escapeHtml(statusTitle)}"></span>
             </div>
-            <div class="player-info-pos">${p.name} | ${p.pos}</div>
+            <div class="player-info-pos">${escapeHtml(p.name)} | ${escapeHtml(p.pos)}</div>
           </div>
           <div style="text-align: right; font-size: 0.8rem; font-weight: 700; color: var(--epl-green);">
             ${p.goals > 0 ? p.goals + ' ⚽' : ''}
@@ -789,14 +833,14 @@ const app = {
       return `
         <div class="injury-card ${p.status}">
           <div class="injury-card-top">
-            <div class="injury-player-name">${p.webName || p.name} (${numText})</div>
-            <span class="injury-status-pill ${pillClass}">${pillText}</span>
+            <div class="injury-player-name">${escapeHtml(p.webName || p.name)} (${escapeHtml(numText)})</div>
+            <span class="injury-status-pill ${pillClass}">${escapeHtml(pillText)}</span>
           </div>
           <div style="font-size: 0.82rem; color: var(--epl-green); margin-bottom: 4px; font-weight: 600;">
-            ${team.name} - ${p.pos}
+            ${escapeHtml(team.name)} - ${escapeHtml(p.pos)}
           </div>
           <div class="injury-desc">
-            🩺 Tình trạng: <strong>${this.translateInjury(p.injuryReason)}</strong>
+            🩺 Tình trạng: <strong>${escapeHtml(this.translateInjury(p.injuryReason))}</strong>
           </div>
         </div>
       `;
@@ -898,7 +942,7 @@ const app = {
 
     select.innerHTML = `<option value="">⭐ Chọn CLB Yêu Thích</option>` +
       EPL_DATA.teams.map(t => `
-        <option value="${t.id}" ${Number(this.favoriteTeamId) === t.id ? 'selected' : ''}>${t.name}</option>
+        <option value="${t.id}" ${Number(this.favoriteTeamId) === t.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>
       `).join('');
   },
 
@@ -921,8 +965,8 @@ const app = {
       banner.style.display = 'block';
       banner.innerHTML = `
         <div style="background: rgba(0, 255, 135, 0.15); border: 1px solid var(--epl-green); border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="app.viewClubDetail(${team.id})">
-          <img src="${team.logo}" alt="${team.name}" style="width: 22px; height: 22px;">
-          <span style="font-size: 0.82rem; font-weight: 700;">CLB bạn yêu thích: ${team.name}</span>
+          <img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}" style="width: 22px; height: 22px;">
+          <span style="font-size: 0.82rem; font-weight: 700;">CLB bạn yêu thích: ${escapeHtml(team.name)}</span>
         </div>
       `;
     }

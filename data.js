@@ -1,6 +1,6 @@
-// Premier League Live Data (Pure UTF-8)
+﻿// Premier League Live Data (Pure UTF-8)
 const EPL_DATA = {
-    "currentGameweek":  10,
+    "currentGameweek":  11,
     "fixtures":  [
                      {
                          "awayScore":  0,
@@ -1103,70 +1103,70 @@ const EPL_DATA = {
                          "status":  "FT"
                      },
                      {
-                         "awayScore":  null,
+                         "awayScore":  1,
                          "awayTeamId":  10,
                          "id":  108,
                          "homeTeamId":  15,
                          "time":  "19:30",
                          "date":  "21/11/2026",
                          "gameweek":  11,
-                         "homeScore":  null,
-                         "status":  "UPCOMING"
+                         "homeScore":  1,
+                         "status":  "FT"
                      },
                      {
-                         "awayScore":  null,
+                         "awayScore":  0,
                          "awayTeamId":  20,
                          "id":  101,
                          "homeTeamId":  2,
                          "time":  "22:00",
                          "date":  "21/11/2026",
                          "gameweek":  11,
-                         "homeScore":  null,
-                         "status":  "UPCOMING"
+                         "homeScore":  0,
+                         "status":  "FT"
                      },
                      {
-                         "awayScore":  null,
+                         "awayScore":  0,
                          "awayTeamId":  18,
                          "id":  102,
                          "homeTeamId":  3,
                          "time":  "22:00",
                          "date":  "21/11/2026",
                          "gameweek":  11,
-                         "homeScore":  null,
-                         "status":  "UPCOMING"
+                         "homeScore":  2,
+                         "status":  "FT"
                      },
                      {
-                         "awayScore":  null,
+                         "awayScore":  4,
                          "awayTeamId":  13,
                          "id":  104,
                          "homeTeamId":  6,
                          "time":  "22:00",
                          "date":  "21/11/2026",
                          "gameweek":  11,
-                         "homeScore":  null,
-                         "status":  "UPCOMING"
+                         "homeScore":  1,
+                         "status":  "FT"
                      },
                      {
-                         "awayScore":  null,
+                         "awayScore":  2,
                          "awayTeamId":  8,
                          "id":  105,
                          "homeTeamId":  7,
                          "time":  "22:00",
                          "date":  "21/11/2026",
                          "gameweek":  11,
-                         "homeScore":  null,
-                         "status":  "UPCOMING"
+                         "homeScore":  3,
+                         "status":  "FT"
                      },
                      {
-                         "awayScore":  null,
+                         "awayScore":  0,
                          "awayTeamId":  12,
                          "id":  110,
                          "homeTeamId":  19,
                          "time":  "22:00",
                          "date":  "21/11/2026",
                          "gameweek":  11,
-                         "homeScore":  null,
-                         "status":  "UPCOMING"
+                         "homeScore":  2,
+                         "status":  "FT"
                      },
                      {
                          "awayScore":  null,
@@ -1177,7 +1177,7 @@ const EPL_DATA = {
                          "date":  "22/11/2026",
                          "gameweek":  11,
                          "homeScore":  null,
-                         "status":  "UPCOMING"
+                         "status":  "LIVE"
                      },
                      {
                          "awayScore":  null,
@@ -14373,19 +14373,19 @@ const EPL_DATA = {
                         "yellow":  0
                     }
                 ],
-    "lastUpdated":  "18/11/2026, 22:55 (G11T+7)",
+    "lastUpdated":  "21/11/2026, 23:55 (GMT+7)",
     "teams":  [
                   {
                       "gd":  -9,
                       "id":  20,
                       "form":  [
                                    "L",
-                                   "L",
                                    "D",
                                    "L",
-                                   "W"
+                                   "W",
+                                   "D"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  56,
                       "name":  "Sunderland",
                       "shortName":  "SUN",
@@ -14393,53 +14393,53 @@ const EPL_DATA = {
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t56.png",
                       "lost":  6,
                       "gf":  8,
-                      "drawn":  2,
-                      "points":  8,
+                      "drawn":  3,
+                      "points":  9,
                       "ga":  17
                   },
                   {
-                      "gd":  -1,
+                      "gd":  1,
                       "id":  19,
                       "form":  [
-                                   "D",
                                    "W",
                                    "W",
                                    "W",
-                                   "L"
-                               ],
-                      "played":  10,
-                      "code":  6,
-                      "name":  "Spurs",
-                      "shortName":  "TOT",
-                      "won":  3,
-                      "logo":  "https://resources.premierleague.com/premierleague/badges/70/t6.png",
-                      "lost":  4,
-                      "gf":  10,
-                      "drawn":  3,
-                      "points":  12,
-                      "ga":  11
-                  },
-                  {
-                      "gd":  -4,
-                      "id":  18,
-                      "form":  [
-                                   "L",
-                                   "L",
-                                   "D",
                                    "L",
                                    "W"
                                ],
-                      "played":  10,
+                      "played":  11,
+                      "code":  6,
+                      "name":  "Spurs",
+                      "shortName":  "TOT",
+                      "won":  4,
+                      "logo":  "https://resources.premierleague.com/premierleague/badges/70/t6.png",
+                      "lost":  4,
+                      "gf":  12,
+                      "drawn":  3,
+                      "points":  15,
+                      "ga":  11
+                  },
+                  {
+                      "gd":  -6,
+                      "id":  18,
+                      "form":  [
+                                   "L",
+                                   "D",
+                                   "L",
+                                   "W",
+                                   "L"
+                               ],
+                      "played":  11,
                       "code":  17,
                       "name":  "Nott\u0027m Forest",
                       "shortName":  "NFO",
                       "won":  2,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t17.png",
-                      "lost":  5,
+                      "lost":  6,
                       "gf":  9,
                       "drawn":  3,
                       "points":  9,
-                      "ga":  13
+                      "ga":  15
                   },
                   {
                       "gd":  -3,
@@ -14490,22 +14490,22 @@ const EPL_DATA = {
                       "id":  15,
                       "form":  [
                                    "W",
-                                   "W",
                                    "L",
                                    "L",
-                                   "L"
+                                   "L",
+                                   "D"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  43,
                       "name":  "Man City",
                       "shortName":  "MCI",
                       "won":  7,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t43.png",
                       "lost":  3,
-                      "gf":  21,
-                      "drawn":  0,
-                      "points":  21,
-                      "ga":  13
+                      "gf":  22,
+                      "drawn":  1,
+                      "points":  22,
+                      "ga":  14
                   },
                   {
                       "gd":  4,
@@ -14530,48 +14530,48 @@ const EPL_DATA = {
                       "ga":  10
                   },
                   {
-                      "gd":  2,
+                      "gd":  5,
                       "id":  13,
                       "form":  [
-                                   "L",
                                    "D",
                                    "D",
                                    "L",
+                                   "W",
                                    "W"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  2,
                       "name":  "Leeds",
                       "shortName":  "LEE",
-                      "won":  3,
+                      "won":  4,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t2.png",
                       "lost":  2,
-                      "gf":  10,
+                      "gf":  14,
                       "drawn":  5,
-                      "points":  14,
-                      "ga":  8
+                      "points":  17,
+                      "ga":  9
                   },
                   {
-                      "gd":  -5,
+                      "gd":  -7,
                       "id":  12,
                       "form":  [
-                                   "W",
                                    "L",
                                    "D",
                                    "D",
+                                   "L",
                                    "L"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  40,
                       "name":  "Ipswich Town",
                       "shortName":  "IPS",
                       "won":  3,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t40.png",
-                      "lost":  5,
+                      "lost":  6,
                       "gf":  15,
                       "drawn":  2,
                       "points":  11,
-                      "ga":  20
+                      "ga":  22
                   },
                   {
                       "gd":  0,
@@ -14599,23 +14599,23 @@ const EPL_DATA = {
                       "gd":  -2,
                       "id":  10,
                       "form":  [
-                                   "L",
                                    "W",
                                    "W",
                                    "D",
+                                   "D",
                                    "D"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  54,
                       "name":  "Fulham",
                       "shortName":  "FUL",
                       "won":  2,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t54.png",
                       "lost":  4,
-                      "gf":  10,
-                      "drawn":  4,
-                      "points":  10,
-                      "ga":  12
+                      "gf":  11,
+                      "drawn":  5,
+                      "points":  11,
+                      "ga":  13
                   },
                   {
                       "gd":  2,
@@ -14640,70 +14640,70 @@ const EPL_DATA = {
                       "ga":  10
                   },
                   {
-                      "gd":  -14,
+                      "gd":  -15,
                       "id":  8,
                       "form":  [
-                                   "W",
+                                   "L",
                                    "L",
                                    "L",
                                    "L",
                                    "L"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  31,
                       "name":  "Crystal Palace",
                       "shortName":  "CRY",
                       "won":  2,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t31.png",
-                      "lost":  7,
-                      "gf":  10,
+                      "lost":  8,
+                      "gf":  12,
                       "drawn":  1,
                       "points":  7,
-                      "ga":  24
+                      "ga":  27
                   },
                   {
-                      "gd":  -9,
+                      "gd":  -8,
                       "id":  7,
                       "form":  [
-                                   "W",
                                    "L",
                                    "L",
                                    "W",
-                                   "L"
+                                   "L",
+                                   "W"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  9,
                       "name":  "Coventry City",
                       "shortName":  "COV",
-                      "won":  3,
+                      "won":  4,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t9.png",
                       "lost":  7,
-                      "gf":  10,
+                      "gf":  13,
                       "drawn":  0,
-                      "points":  9,
-                      "ga":  19
+                      "points":  12,
+                      "ga":  21
                   },
                   {
-                      "gd":  3,
+                      "gd":  0,
                       "id":  6,
                       "form":  [
                                    "W",
-                                   "W",
                                    "L",
                                    "W",
+                                   "L",
                                    "L"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  8,
                       "name":  "Chelsea",
                       "shortName":  "CHE",
                       "won":  5,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t8.png",
-                      "lost":  4,
-                      "gf":  19,
+                      "lost":  5,
+                      "gf":  20,
                       "drawn":  1,
                       "points":  16,
-                      "ga":  16
+                      "ga":  20
                   },
                   {
                       "gd":  19,
@@ -14750,38 +14750,38 @@ const EPL_DATA = {
                       "ga":  11
                   },
                   {
-                      "gd":  2,
+                      "gd":  4,
                       "id":  3,
                       "form":  [
-                                   "L",
+                                   "W",
                                    "W",
                                    "W",
                                    "W",
                                    "W"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  91,
                       "name":  "Bournemouth",
                       "shortName":  "BOU",
-                      "won":  4,
+                      "won":  5,
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t91.png",
                       "lost":  3,
-                      "gf":  16,
+                      "gf":  18,
                       "drawn":  3,
-                      "points":  15,
+                      "points":  18,
                       "ga":  14
                   },
                   {
                       "gd":  -3,
                       "id":  2,
                       "form":  [
+                                   "W",
+                                   "W",
                                    "D",
-                                   "W",
-                                   "W",
                                    "D",
                                    "D"
                                ],
-                      "played":  10,
+                      "played":  11,
                       "code":  7,
                       "name":  "Aston Villa",
                       "shortName":  "AVL",
@@ -14789,8 +14789,8 @@ const EPL_DATA = {
                       "logo":  "https://resources.premierleague.com/premierleague/badges/70/t7.png",
                       "lost":  3,
                       "gf":  14,
-                      "drawn":  4,
-                      "points":  13,
+                      "drawn":  5,
+                      "points":  14,
                       "ga":  17
                   },
                   {
